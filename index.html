@@ -38,7 +38,7 @@
         }
 
         .back-button {
-            position: fixed; /* Changed from absolute to fixed */
+            position: fixed;
             top: 10px;
             left: 10px;
             background-color: transparent;
@@ -46,7 +46,7 @@
             font-size: 24px;
             color: #007bff;
             cursor: pointer;
-            z-index: 1000; /* Ensure the button is on top of other elements */
+            z-index: 1000;
         }
 
         .section-title {
@@ -125,28 +125,29 @@
             shoes: false
         };
 
-        async function sendSMSNotification(workerName, report) {
+        async function sendNotification(workerName, report) {
             const worker = users.find(user => user.name === workerName && user.role === 'worker');
-            if (worker && worker.phone) {
-                const phoneNumber = worker.phone;
+            if (worker) {
                 try {
-                    const response = await fetch('/send-sms', {
+                    const response = await fetch('/report-hazard', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            to: phoneNumber,
-                            message: report
+                            workerName,
+                            report,
+                            email: worker.email,
+                            phone: worker.phone
                         })
                     });
                     if (response.ok) {
-                        console.log('SMS sent successfully');
+                        console.log('Notification sent successfully');
                     } else {
-                        console.error('Failed to send SMS');
+                        console.error('Failed to send notification');
                     }
                 } catch (error) {
-                    console.error('Error sending SMS:', error);
+                    console.error('Error sending notification:', error);
                 }
             }
         }
@@ -302,7 +303,7 @@
                                                 <div class="card-body">
                                                     <h5 class="card-title">Alerts</h5>
                                                     <ul id="alerts-list" class="list-group">
-                                                        ${voiceCommands.map(command => `<li class="list-group-item">${command}</li>`).join('')}
+                                                        ${voiceCommands.map(command => <li class="list-group-item">${command}</li>).join('')}
                                                     </ul>
                                                 </div>
                                             </div>
@@ -312,7 +313,7 @@
                                                 <div class="card-body">
                                                     <h5 class="card-title">Reports</h5>
                                                     <ul id="reports-list" class="list-group">
-                                                        ${safetyCheckNotifications.map(notification => `<li class="list-group-item">${notification}</li>`).join('')}
+                                                        ${safetyCheckNotifications.map(notification => <li class="list-group-item">${notification}</li>).join('')}
                                                     </ul>
                                                 </div>
                                             </div>
@@ -332,17 +333,18 @@
                                     
                                     <h4 class="section-title">Real-Time Notifications</h4>
                                     <ul id="voice-commands-list" class="list-group mb-3">
-                                        ${voiceCommands.map(command => `<li class="list-group-item">${command}</li>`).join('')}
+                                        ${voiceCommands.map(command => <li class="list-group-item">${command}</li>).join('')}
                                     </ul>
                                     
                                     <h4 class="section-title">Video/Image Analysis Results</h4>
                                     <ul id="safety-check-notifications" class="list-group mb-3">
-                                        ${safetyCheckNotifications.map(notification => `<li class="list-group-item">${notification}</li>`).join('')}
+                                        ${safetyCheckNotifications.map(notification => <li class="list-group-item">${notification}</li>).join('')}
                                     </ul>
+                                    <p>For more detailed analysis, visit the <a href="https://teachablemachine.withgoogle.com/models/VFgOAlKZz/" target="_blank">Teachable Machine Model</a>.</p>
                                     
                                     <h4 class="section-title">Audit Trail</h4>
                                     <ul id="audit-trail-list" class="list-group mb-3">
-                                        ${auditTrail.map(log => `<li class="list-group-item">${log.time} - ${log.user} - ${log.action} - ${log.details}</li>`).join('')}
+                                        ${auditTrail.map(log => <li class="list-group-item">${log.time} - ${log.user} - ${log.action} - ${log.details}</li>).join('')}
                                     </ul>
                                     
                                     <div>
@@ -378,7 +380,7 @@
                 const currentTime = new Date().toLocaleString();
                 const log = {
                     time: currentTime,
-                    user: currentUser.email, // Changed to email for consistency
+                    user: currentUser.username,
                     action,
                     details
                 };
@@ -397,10 +399,11 @@
             auditTrail.forEach(log => {
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item';
-                listItem.innerHTML = `${log.time} - ${log.user} - ${log.action} - ${log.details}`;
+                listItem.innerHTML = ${log.time} - ${log.user} - ${log.action} - ${log.details};
                 auditTrailList.appendChild(listItem);
             });
         }
+
         function addSafetyProtocol() {
             const newProtocol = document.getElementById('newSafetyProtocol').value;
             if (newProtocol) {
@@ -420,7 +423,7 @@
         }
 
         function editSafetyProtocol(index) {
-            const protocolText = document.getElementById(`protocol-text-${index}`);
+            const protocolText = document.getElementById(protocol-text-${index});
             const newProtocol = prompt('Edit Safety Protocol:', protocolText.textContent);
             if (newProtocol !== null) {
                 safetyProtocols[index] = newProtocol;
@@ -441,10 +444,11 @@
                         <button class="btn btn-danger btn-sm" onclick="removeSafetyProtocol(${index})">Delete</button>
                     </div>
                 `;
+                safetyProtocolList
                 safetyProtocolList.appendChild(listItem);
             });
         }
-        
+
         function loadWorkerPage(workerName) {
             document.getElementById('app').innerHTML = `
                 <div class="container">
@@ -469,11 +473,11 @@
                                         </li>
                                         <li class="list-group-item">
                                             Wear shoes
+                                            <input type="file" class="form-control mt-2" id="shoesUpload" accept="image/*" onchange="analyzeTaskImage(event, '<li class="list-group-item">
+                                            Wear shoes
                                             <input type="file" class="form-control mt-2" id="shoesUpload" accept="image/*" onchange="analyzeTaskImage(event, 'shoes')">
                                         </li>
-                                        <!-- Add more tasks here -->
                                     </ul>
-                                    <button class="btn btn-warning
                                     <button class="btn btn-warning mb-3" onclick="startVoiceCommand('${workerName}')">Voice Command</button>
                                     <div class="mb-3">
                                         <label for="textCommand" class="form-label">Report Hazard</label>
@@ -505,13 +509,13 @@
                 const model = await cocoSsd.load();
                 const predictions = await model.detect(img);
                 const analysisResult = document.getElementById('analysisResult');
-                analysisResult.innerHTML = `<h5>Analysis Result for ${task}:</h5>`;
+                analysisResult.innerHTML = <h5>Analysis Result for ${task}:</h5>;
                 let taskVerified = false;
 
                 predictions.forEach(prediction => {
                     const confidence = Math.round(prediction.score * 100);
                     const p = document.createElement('p');
-                    p.textContent = `${prediction.class}: ${confidence}% confidence`;
+                    p.textContent = ${prediction.class}: ${confidence}% confidence;
                     analysisResult.appendChild(p);
 
                     // Mock verification for specific equipment
@@ -523,9 +527,9 @@
                 });
 
                 if (taskVerificationStatus[task]) {
-                    analysisResult.innerHTML += `<p class="text-success">${task} verified successfully.</p>`;
+                    analysisResult.innerHTML += <p class="text-success">${task} verified successfully.</p>;
                 } else {
-                    analysisResult.innerHTML += `<p class="text-danger">${task} not verified.</p>`;
+                    analysisResult.innerHTML += <p class="text-danger">${task} not verified.</p>;
                 }
             };
         }
@@ -558,11 +562,10 @@
 
             recognition.onresult = function(event) {
                 const transcript = event.results[0][0].transcript;
-                const report = `Hazard reported by ${workerName}: ${transcript}`;
-                alert(report);
+                const report = Hazard reported by ${workerName}: ${transcript};
+                alert(report)
                 voiceCommands.push(report);
-                sendSMSNotification(workerName, report); // Send SMS notification
-                loadManagerPage(); // Refresh manager page to show new hazard report
+                sendNotification(workerName, report); // Send email and SMS notification
             };
 
             recognition.onspeechend = function() {
@@ -577,11 +580,11 @@
         function submitTextCommand(workerName) {
             const textCommand = document.getElementById('textCommand').value;
             if (textCommand) {
-                const report = `Hazard reported by ${workerName}: ${textCommand}`;
+                const report = Hazard reported by ${workerName}: ${textCommand};
                 alert(report);
                 voiceCommands.push(report);
+                sendNotification(workerName, report); // Send email and SMS notification
                 document.getElementById('textCommand').value = ''; // Clear the input field
-                loadManagerPage(); // Refresh manager page to show new hazard report
             } else {
                 alert('Please enter a hazard report.');
             }
